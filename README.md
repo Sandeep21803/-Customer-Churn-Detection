@@ -1,15 +1,51 @@
+
 # Customer Churn - Flask UI
 
-Run the Flask demo locally (ensure you are in the project directory and `Churn_Modelling.csv` is present):
+This project provides a small Flask UI for exploring a churn model, making single predictions, and running batch predictions.
 
-```bash
+Prerequisites
+- Install Miniconda or Anaconda (recommended) so binary scientific packages install reliably on Windows.
+
+Quick start (Conda, recommended)
+
+```powershell
+# create environment and install dependencies from conda-forge
+conda create -n churn python=3.11 -y
+conda activate churn
+conda install pandas scikit-learn flask imbalanced-learn xgboost seaborn matplotlib -c conda-forge -y
+
+# run the app
+cd "D:\project 1\Customer Churn\-Customer-Churn-Detection"
+python app.py
+
+# open http://127.0.0.1:5000
+```
+
+Notes
+- The app trains a demo model on first run and persists the trained context to `model.pkl` for faster startups. Remove `model.pkl` to retrain.
+- Use the **Predict** tab for single predictions and **Batch** to upload a CSV and download predictions.
+- An example CSV is provided at `static/example_batch.csv`.
+
+Optional: run with a Python venv (use Python 3.11)
+
+```powershell
 python -m venv .venv
-source .venv/Scripts/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
 python app.py
 ```
 
-Open http://127.0.0.1:5000 in your browser.
+Troubleshooting
+- If pip tries to compile packages (errors building `pandas` on Windows), use the Conda instructions above — conda installs prebuilt binaries and avoids Visual Studio build tools.
+- If you see errors reading `Churn_Modelling.csv`, ensure the file is in the project root.
+
+Files
+- `app.py`: Flask app and model training/prediction logic
+- `templates/`: HTML templates (`index.html`, `result.html`)
+- `static/`: styles and `example_batch.csv`
+
+If you want, I can add Docker support or a one-command launcher to make deployment and sharing even easier.
 # Customer Churn Analysis - EDA and Modeling
 
 ## Overview
