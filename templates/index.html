@@ -17,7 +17,7 @@
       <div class="container-fluid px-5">
         <a class="navbar-brand fw-bold" href="#">Churn Studio</a>
         <div class="d-flex align-items-center ms-auto gap-2">
-          <a class="btn btn-dark btn-sm" href="#">Log in</a>
+          <input id="accentPicker" type="color" title="Pick accent color" value="#0d6efd" style="width:38px; height:34px; border-radius:6px; border: none;">
         </div>
       </div>
     </nav>
@@ -31,23 +31,9 @@
           <a class="btn btn-outline-secondary btn-lg" href="#batch">Upload CSV</a>
         </div>
 
-        <!-- simple decorative SVG hero illustration -->
-        <svg class="illustration" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <linearGradient id="g1" x1="0" x2="1">
-              <stop offset="0%" stop-color="#6fb3ff" stop-opacity="0.9"/>
-              <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.9"/>
-            </linearGradient>
-          </defs>
-          <rect x="0" y="0" width="600" height="400" rx="24" fill="url(#g1)" opacity="0.08" />
-          <circle cx="120" cy="100" r="60" fill="#fff" opacity="0.06" />
-          <circle cx="220" cy="260" r="90" fill="#fff" opacity="0.04" />
-          <g transform="translate(60,40)">
-            <rect x="0" y="180" width="120" height="12" rx="6" fill="#fff" opacity="0.6" />
-            <rect x="0" y="150" width="90" height="12" rx="6" fill="#fff" opacity="0.6" />
-            <rect x="0" y="120" width="70" height="12" rx="6" fill="#fff" opacity="0.6" />
-          </g>
-        </svg>
+        <!-- Lottie hero animation (public CDN) -->
+        <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+        <lottie-player src="https://assets10.lottiefiles.com/packages/lf20_tfb3estd.json"  background="transparent"  speed="1"  style="width:360px; height:360px;"  loop  autoplay class="illustration" aria-hidden="true"></lottie-player>
 
       </div>
     </header>
@@ -88,14 +74,22 @@
             </div>
             <div class="col-lg-6">
               <h5>Visuals</h5>
-              <div class="d-flex gap-3 align-items-start mt-2">
-                <div style="flex:1; max-width:360px;">
-                  <canvas id="rocChart" class="chart-img"></canvas>
-                </div>
-                <div style="flex:1; max-width:360px;">
-                  <canvas id="distChart" class="chart-img"></canvas>
-                </div>
-              </div>
+                      <div class="d-flex gap-3 align-items-start mt-2">
+                        <div style="flex:1; max-width:420px;">
+                          <canvas id="rocChart" class="chart-img"></canvas>
+                          <div class="d-flex gap-2 mt-2">
+                            <button id="downloadRocPng" class="btn btn-sm btn-outline-secondary">Download ROC PNG</button>
+                            <button id="downloadRocCsv" class="btn btn-sm btn-outline-secondary">Download ROC CSV</button>
+                          </div>
+                        </div>
+                        <div style="flex:1; max-width:420px;">
+                          <canvas id="distChart" class="chart-img"></canvas>
+                          <div class="d-flex gap-2 mt-2">
+                            <button id="downloadDistPng" class="btn btn-sm btn-outline-secondary">Download Dist PNG</button>
+                            <button id="downloadDistCsv" class="btn btn-sm btn-outline-secondary">Download Dist CSV</button>
+                          </div>
+                        </div>
+                      </div>
             </div>
           </div>
         </section>
@@ -214,6 +208,39 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
       document.documentElement.style.setProperty('--accent', savedAccent);
 
+      const accentPicker = document.getElementById('accentPicker');
+      // initialize accent picker from saved value
+      accentPicker.value = savedAccent;
+
+      // live accent update: apply and update charts when changed
+      accentPicker.addEventListener('input', (e)=>{
+        const c = e.target.value;
+        localStorage.setItem('churn_accent', c);
+        document.documentElement.style.setProperty('--accent', c);
+        // update charts if present
+        try{
+          if(window.rocChart){
+            window.rocChart.data.datasets[0].borderColor = c;
+            window.rocChart.data.datasets[0].backgroundColor = hexToRgba(c, 0.08);
+            window.rocChart.update();
+          }
+          if(window.distChart){
+            window.distChart.data.datasets[0].backgroundColor[0] = c;
+            window.distChart.update();
+          }
+        }catch(err){ console.warn('Failed to update chart colors', err) }
+      });
+
+      // helper: hex to rgba
+      function hexToRgba(hex, alpha){
+        const h = hex.replace('#','');
+        const bigint = parseInt(h, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
       // Fetch data and render client-side charts with Chart.js
       async function renderCharts(){
         // ROC
@@ -222,7 +249,7 @@
           const json = await r.json();
           if(!json.error){
             const ctx = document.getElementById('rocChart').getContext('2d');
-            new Chart(ctx, {
+            const rocChart = new Chart(ctx, {
               type: 'line',
               data: {
                 labels: json.fpr,
@@ -230,7 +257,7 @@
                   label: `ROC (AUC=${json.auc.toFixed(3)})`,
                   data: json.tpr,
                   borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d6efd',
-                  backgroundColor: 'rgba(13,110,253,0.08)',
+                  backgroundColor: hexToRgba(getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d6efd', 0.08),
                   fill: true,
                   tension: 0.2,
                   pointRadius: 0
@@ -238,6 +265,7 @@
               },
               options: { responsive:true, scales:{ x:{ title:{display:true, text:'False Positive Rate'} }, y:{ title:{display:true, text:'True Positive Rate'}, min:0, max:1 } } }
             });
+            window.rocChart = rocChart;
           }
         }catch(e){ console.warn('ROC chart failed', e) }
 
@@ -249,15 +277,59 @@
             const labels = Object.keys(j2).map(k=>k==='0'? 'No':'Yes');
             const values = Object.values(j2);
             const ctx2 = document.getElementById('distChart').getContext('2d');
-            new Chart(ctx2, {
+            const distChart = new Chart(ctx2, {
               type: 'bar',
               data: { labels: labels, datasets:[{ label:'Count', data: values, backgroundColor:[getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d6efd', '#ff6b6b'] }] },
               options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
             });
+            window.distChart = distChart;
           }
         }catch(e){ console.warn('Dist chart failed', e) }
       }
       renderCharts();
+
+      // Download handlers for charts
+      document.getElementById('downloadRocPng').addEventListener('click', ()=>{
+        if(window.rocChart){
+          const url = window.rocChart.toBase64Image();
+          const a = document.createElement('a'); a.href = url; a.download = 'roc.png'; a.click();
+        }
+      });
+      document.getElementById('downloadDistPng').addEventListener('click', ()=>{
+        if(window.distChart){
+          const url = window.distChart.toBase64Image();
+          const a = document.createElement('a'); a.href = url; a.download = 'distribution.png'; a.click();
+        }
+      });
+
+      // CSV download helpers
+      function downloadCsv(filename, header, rows){
+        const csv = [header.join(','), ...rows.map(r=>r.join(','))].join('\n');
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById('downloadRocCsv').addEventListener('click', async ()=>{
+        try{
+          const r = await fetch('/api/roc'); const j = await r.json();
+          if(!j.error){
+            const rows = j.fpr.map((f, i)=>[String(f), String(j.tpr[i])]);
+            downloadCsv('roc.csv', ['fpr','tpr'], rows);
+          }
+        }catch(e){ console.warn(e) }
+      });
+
+      document.getElementById('downloadDistCsv').addEventListener('click', async ()=>{
+        try{
+          const r = await fetch('/api/dist'); const j = await r.json();
+          if(!j.error){
+            const rows = Object.entries(j).map(([k,v])=>[k, String(v)]);
+            downloadCsv('dist.csv', ['label','count'], rows);
+          }
+        }catch(e){ console.warn(e) }
+      });
     </script>
   </body>
 </html>
