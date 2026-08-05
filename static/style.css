@@ -38,6 +38,19 @@ canvas{ max-height:320px; }
 .hero-title{ font-weight:800; font-size:3.2rem; line-height:1.02; letter-spacing:-0.02em; }
 .hero-subtitle{ color:var(--muted); font-size:1.125rem; max-width:900px; margin:0 auto; }
 
+/* background artwork: subtle SVG pattern using data URI */
+body::before{
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background-image: radial-gradient(circle at 10% 20%, rgba(13,110,253,0.04), transparent 8%), radial-gradient(circle at 90% 80%, rgba(25,135,84,0.03), transparent 10%);
+}
+
+/* hero illustration */
+.hero .illustration{ position:absolute; right:6%; top:24px; width:360px; max-width:38%; opacity:0.95 }
+.hero .hero-inner{ position:relative }
+
 /* cookie banner */
 .cookie-banner{ position:fixed; right:24px; bottom:24px; background:var(--card); border-radius:12px; padding:18px; width:360px; z-index:1100; }
 .cookie-banner .cookie-body{ display:flex; flex-direction:column; gap:8px }

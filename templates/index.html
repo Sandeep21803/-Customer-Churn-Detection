@@ -17,20 +17,38 @@
       <div class="container-fluid px-5">
         <a class="navbar-brand fw-bold" href="#">Churn Studio</a>
         <div class="d-flex align-items-center ms-auto gap-2">
-          <a class="btn btn-outline-dark btn-sm" href="#">Contact Sales</a>
           <a class="btn btn-dark btn-sm" href="#">Log in</a>
         </div>
       </div>
     </nav>
 
     <header class="hero py-6">
-      <div class="container text-center">
+      <div class="container text-center hero-inner">
         <h1 class="hero-title">The complete customer churn demo to explore and act</h1>
         <p class="hero-subtitle mt-3">Make single predictions, run batch scoring, and inspect feature contributions — all from a modern, lightweight UI.</p>
         <div class="mt-4">
           <a class="btn btn-primary btn-lg me-3" href="#predict">Try Predict</a>
           <a class="btn btn-outline-secondary btn-lg" href="#batch">Upload CSV</a>
         </div>
+
+        <!-- simple decorative SVG hero illustration -->
+        <svg class="illustration" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0%" stop-color="#6fb3ff" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.9"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="600" height="400" rx="24" fill="url(#g1)" opacity="0.08" />
+          <circle cx="120" cy="100" r="60" fill="#fff" opacity="0.06" />
+          <circle cx="220" cy="260" r="90" fill="#fff" opacity="0.04" />
+          <g transform="translate(60,40)">
+            <rect x="0" y="180" width="120" height="12" rx="6" fill="#fff" opacity="0.6" />
+            <rect x="0" y="150" width="90" height="12" rx="6" fill="#fff" opacity="0.6" />
+            <rect x="0" y="120" width="70" height="12" rx="6" fill="#fff" opacity="0.6" />
+          </g>
+        </svg>
+
       </div>
     </header>
 
@@ -45,6 +63,9 @@
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab">Batch</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab">Data</button>
         </li>
       </ul>
 
@@ -69,8 +90,15 @@
               </div>
             </div>
             <div class="col-lg-6">
-              <h5>Sample data</h5>
-              <div class="mt-2">{{ sample_table | safe }}</div>
+              <h5>Visuals</h5>
+              <div class="d-flex gap-3 align-items-start mt-2">
+                <div>
+                  <img src="/plots/roc.png" alt="ROC" style="max-width:280px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06)">
+                </div>
+                <div>
+                  <img src="/plots/dist.png" alt="Distribution" style="max-width:280px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06)">
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -153,6 +181,15 @@
                 <button class="btn btn-outline-secondary btn-lg" type="submit">Run Batch Predictions & Download</button>
               </form>
               <div class="mt-3 text-muted small">Download sample: <a href="{{ url_for('static', filename='example_batch.csv') }}">example_batch.csv</a></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-pane" id="data" role="tabpanel">
+          <div class="row mt-3">
+            <div class="col-12">
+              <h5>Sample dataset</h5>
+              <div class="mt-2">{{ sample_table | safe }}</div>
             </div>
           </div>
         </section>
