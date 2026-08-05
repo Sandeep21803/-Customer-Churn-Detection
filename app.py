@@ -25,6 +25,53 @@ def load_and_train(persist_path='model.pkl'):
     if os.path.exists(persist_path):
         with open(persist_path, 'rb') as f:
             context = pickle.load(f)
+
+        # If an older persisted context did not include test split, try to reconstruct it
+        if 'X_test' not in context or 'y_test' not in context:
+            try:
+                # Prefer embedded full_df when available
+                if 'full_df' in context and context['full_df'] is not None:
+                    df = context['full_df']
+                else:
+                    df = pd.read_csv('Churn_Modelling.csv')
+
+                # Recreate the same feature engineering steps used during training
+                df = df.copy()
+                df['CreditUtilization'] = df['Balance'] / df['CreditScore']
+                df['InteractionScore'] = df['NumOfProducts'] + df['HasCrCard'] + df['IsActiveMember']
+                df['BalanceToSalaryRatio'] = df['Balance'] / df['EstimatedSalary']
+                df['CreditScoreAgeInteraction'] = df['CreditScore'] * df['Age']
+                bins = [0, 669, 739, 850]
+                labels = ['Low', 'Medium', 'High']
+                df['CreditScoreGroup'] = pd.cut(df['CreditScore'], bins=bins, labels=labels, include_lowest=True)
+
+                # Apply stored encoders if present
+                encoders = context.get('encoders')
+                if encoders:
+                    for col in ['Geography', 'Gender', 'CreditScoreGroup']:
+                        if col in encoders and col in df.columns:
+                            le = encoders[col]
+                            df[col] = le.transform(df[col].astype(str))
+
+                # Build X and y
+                col_drop = ['Exited', 'RowNumber', 'CustomerId', 'Surname']
+                X = df.drop(col_drop, axis=1, errors='ignore')
+                y = df['Exited']
+
+                # Apply stored scaler if present
+                scaler = context.get('scaler')
+                scaling_columns = ['Age', 'CreditScore', 'Balance', 'EstimatedSalary', 'CreditUtilization', 'BalanceToSalaryRatio', 'CreditScoreAgeInteraction']
+                if scaler is not None:
+                    X[scaling_columns] = scaler.transform(X[scaling_columns])
+
+                # recreate test split
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                context['X_test'] = X_test
+                context['y_test'] = y_test
+            except Exception:
+                # If reconstruction fails, leave context as-is and ROC endpoint will return 404
+                pass
+
         return context
 
     df = pd.read_csv('Churn_Modelling.csv')
