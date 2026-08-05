@@ -3,36 +3,38 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Customer Churn - Demo UI</title>
+    <title>Customer Churn Demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
       .small-input { max-width: 140px; }
       .tab-pane { padding-top: 1rem; }
-      .accent-preview{ width:18px; height:18px; border-radius:4px; display:inline-block; margin-left:8px; vertical-align:middle }
     </style>
   </head>
-  <body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-      <div class="container-fluid">
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+      <div class="container-fluid px-5">
         <a class="navbar-brand fw-bold" href="#">Churn Studio</a>
-        <div class="d-flex align-items-center ms-auto">
-          <label class="form-check form-switch mb-0 me-3" title="Toggle theme">
-            <input class="form-check-input" type="checkbox" id="themeToggle">
-            <span class="form-check-label">Dark</span>
-          </label>
-          <select id="accentSelect" class="form-select form-select-sm" style="width:130px">
-            <option value="#0d6efd" selected>Blue</option>
-            <option value="#6f42c1">Purple</option>
-            <option value="#198754">Green</option>
-            <option value="#fd7e14">Orange</option>
-          </select>
+        <div class="d-flex align-items-center ms-auto gap-2">
+          <a class="btn btn-outline-dark btn-sm" href="#">Contact Sales</a>
+          <a class="btn btn-dark btn-sm" href="#">Log in</a>
         </div>
       </div>
     </nav>
 
-    <div class="container py-4">
-      <h1 class="mb-3">Customer Churn Demo</h1>
+    <header class="hero py-6">
+      <div class="container text-center">
+        <h1 class="hero-title">The complete customer churn demo to explore and act</h1>
+        <p class="hero-subtitle mt-3">Make single predictions, run batch scoring, and inspect feature contributions — all from a modern, lightweight UI.</p>
+        <div class="mt-4">
+          <a class="btn btn-primary btn-lg me-3" href="#predict">Try Predict</a>
+          <a class="btn btn-outline-secondary btn-lg" href="#batch">Upload CSV</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mt-5 pb-5">
 
       <ul class="nav nav-tabs" id="mainTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -47,27 +49,35 @@
       </ul>
 
       <div class="tab-content">
-        <div class="tab-pane active" id="overview" role="tabpanel">
-          <div class="row mt-3">
-            <div class="col-md-6">
-              <h5>Model metrics</h5>
-              <ul>
-                <li><strong>Accuracy:</strong> {{ metrics['accuracy'] }}</li>
-                <li><strong>Recall:</strong> {{ metrics['recall'] }}</li>
-                <li><strong>F1:</strong> {{ metrics['f1'] }}</li>
-                <li><strong>ROC AUC:</strong> {{ metrics['roc_auc'] }}</li>
-              </ul>
+        <section class="tab-pane active" id="overview" role="tabpanel">
+          <div class="row mt-3 align-items-center">
+            <div class="col-lg-6">
+              <h3 class="mb-3">Model performance</h3>
+              <div class="d-flex gap-3">
+                <div class="card p-3 shadow-sm" style="min-width:140px">
+                  <div class="text-muted small">Accuracy</div>
+                  <div class="h4 mt-1">{{ metrics['accuracy'] }}</div>
+                </div>
+                <div class="card p-3 shadow-sm" style="min-width:140px">
+                  <div class="text-muted small">Recall</div>
+                  <div class="h4 mt-1">{{ metrics['recall'] }}</div>
+                </div>
+                <div class="card p-3 shadow-sm" style="min-width:140px">
+                  <div class="text-muted small">F1</div>
+                  <div class="h4 mt-1">{{ metrics['f1'] }}</div>
+                </div>
+              </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-lg-6">
               <h5>Sample data</h5>
-              <div>{{ sample_table | safe }}</div>
+              <div class="mt-2">{{ sample_table | safe }}</div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="tab-pane" id="predict" role="tabpanel">
+        <section class="tab-pane" id="predict" role="tabpanel">
           <div class="row mt-3">
-            <div class="col-md-8">
+            <div class="col-lg-8">
               <form method="post" action="/predict" id="predictForm">
                 <div class="row g-2">
                   <div class="col-6 col-md-4">
@@ -125,55 +135,56 @@
                   </div>
                 </div>
                 <div class="mt-3">
-                  <button class="btn btn-primary" type="submit">Predict</button>
+                  <button class="btn btn-primary btn-lg" type="submit">Predict</button>
                 </div>
               </form>
             </div>
           </div>
         </div>
 
-        <div class="tab-pane" id="batch" role="tabpanel">
+        <section class="tab-pane" id="batch" role="tabpanel">
           <div class="row mt-3">
-            <div class="col-md-8">
+            <div class="col-lg-8">
               <form method="post" action="/predict_batch" enctype="multipart/form-data">
                 <div class="mb-2">
                   <label class="form-label">Upload CSV (columns: CreditScore,Geography,Gender,Age,Tenure,Balance,NumOfProducts,HasCrCard,IsActiveMember,EstimatedSalary)</label>
                   <input class="form-control" name="file" type="file" accept=".csv">
                 </div>
-                <button class="btn btn-secondary" type="submit">Run Batch Predictions & Download</button>
+                <button class="btn btn-outline-secondary btn-lg" type="submit">Run Batch Predictions & Download</button>
               </form>
+              <div class="mt-3 text-muted small">Download sample: <a href="{{ url_for('static', filename='example_batch.csv') }}">example_batch.csv</a></div>
             </div>
           </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- cookie consent (simple) -->
+    <div id="cookieBanner" class="cookie-banner shadow-sm">
+      <div class="cookie-body">
+        <div>
+          <strong>We value your privacy</strong>
+          <div class="text-muted small">By clicking "Accept all cookies", you agree to storing cookies to improve site experience.</div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button id="rejectCookies" class="btn btn-light">Reject all</button>
+          <button id="acceptCookies" class="btn btn-dark">Accept all cookies</button>
         </div>
       </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Theme toggle + accent color persistence
-      const themeToggle = document.getElementById('themeToggle');
-      const accentSelect = document.getElementById('accentSelect');
-      const applyTheme = (theme, accent)=>{
-        document.documentElement.setAttribute('data-theme', theme);
-        document.documentElement.style.setProperty('--accent', accent);
-        themeToggle.checked = (theme==='dark');
-      };
-      // load
+      // cookie banner
+      const cb = document.getElementById('cookieBanner');
+      if(localStorage.getItem('churn_cookies')==='accepted') cb.style.display='none';
+      document.getElementById('acceptCookies').addEventListener('click', ()=>{ localStorage.setItem('churn_cookies','accepted'); cb.style.display='none'; });
+      document.getElementById('rejectCookies').addEventListener('click', ()=>{ localStorage.setItem('churn_cookies','rejected'); cb.style.display='none'; });
+      // apply saved theme/accent
       const savedTheme = localStorage.getItem('churn_theme') || 'light';
       const savedAccent = localStorage.getItem('churn_accent') || '#0d6efd';
-      applyTheme(savedTheme, savedAccent);
-      // reflect accent select
-      accentSelect.value = savedAccent;
-      accentSelect.addEventListener('change', ()=>{
-        localStorage.setItem('churn_accent', accentSelect.value);
-        document.documentElement.style.setProperty('--accent', accentSelect.value);
-      });
-      themeToggle.addEventListener('change', ()=>{
-        const t = themeToggle.checked ? 'dark' : 'light';
-        localStorage.setItem('churn_theme', t);
-        applyTheme(t, accentSelect.value);
-      });
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.documentElement.style.setProperty('--accent', savedAccent);
     </script>
   </body>
 </html>
