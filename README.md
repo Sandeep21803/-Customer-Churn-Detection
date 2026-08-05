@@ -1,3 +1,15 @@
+# Customer Churn - Flask UI
+
+Run the Flask demo locally (ensure you are in the project directory and `Churn_Modelling.csv` is present):
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+Open http://127.0.0.1:5000 in your browser.
 # Customer Churn Analysis - EDA and Modeling
 
 ## Overview
