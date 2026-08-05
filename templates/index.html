@@ -31,9 +31,26 @@
           <a class="btn btn-outline-secondary btn-lg" href="#batch">Upload CSV</a>
         </div>
 
-        <!-- Lottie hero animation (public CDN) -->
-        <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-        <lottie-player src="https://assets10.lottiefiles.com/packages/lf20_tfb3estd.json"  background="transparent"  speed="1"  style="width:360px; height:360px;"  loop  autoplay class="illustration" aria-hidden="true"></lottie-player>
+        <!-- Inline SVG hero illustration (no external assets) -->
+        <svg class="illustration" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+          <defs>
+            <linearGradient id="hgrad" x1="0" x2="1">
+              <stop offset="0%" stop-color="#6fb3ff"/>
+              <stop offset="100%" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="640" height="360" rx="20" fill="url(#hgrad)" opacity="0.06" />
+          <g fill="#fff" opacity="0.9">
+            <circle cx="120" cy="80" r="40" />
+            <rect x="200" y="140" width="220" height="14" rx="7" />
+            <rect x="200" y="112" width="160" height="14" rx="7" />
+            <rect x="200" y="84" width="120" height="14" rx="7" />
+          </g>
+          <g transform="translate(420,40)" fill="#fff" opacity="0.06">
+            <rect x="0" y="140" width="160" height="120" rx="12" />
+            <circle cx="40" cy="40" r="28" />
+          </g>
+        </svg>
 
       </div>
     </header>
