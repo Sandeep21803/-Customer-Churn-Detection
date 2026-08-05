@@ -9,14 +9,32 @@
   <body class="bg-light">
     <div class="container py-4">
       <h1>Prediction Result</h1>
-      <div class="card mt-3">
-        <div class="card-body">
-          <h5 class="card-title">Churn Prediction</h5>
-          <p class="card-text">Predicted class: <strong>{{ 'Churn' if prediction==1 else 'No churn' }}</strong></p>
-          {% if probability is not none %}
-          <p class="card-text">Probability of churn: <strong>{{ '%.3f'|format(probability) }}</strong></p>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card mt-3">
+            <div class="card-body">
+              <h5 class="card-title">Churn Prediction</h5>
+              <p class="card-text">Predicted class: <strong>{{ 'Churn' if prediction==1 else 'No churn' }}</strong></p>
+              {% if probability is not none %}
+              <p class="card-text">Probability of churn: <strong>{{ '%.3f'|format(probability) }}</strong></p>
+              {% endif %}
+              <a href="/" class="btn btn-secondary mt-2">Back</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          {% if importances %}
+          <h5>Top feature importances</h5>
+          <table class="table table-sm">
+            <thead><tr><th>Feature</th><th>Importance</th></tr></thead>
+            <tbody>
+              {% for row in importances %}
+              <tr><td>{{ row['feature'] }}</td><td>{{ '%.4f'|format(row['importance']) }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
           {% endif %}
-          <a href="/" class="btn btn-secondary mt-2">Back</a>
         </div>
       </div>
     </div>
