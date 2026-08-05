@@ -1,6 +1,34 @@
-body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
-.logo{ width:56px; height:56px; display:flex; align-items:center; justify-content:center; }
+:root{
+	--bg: #f8f9fa;
+	--card: #ffffff;
+	--text: #0d1b2a;
+	--muted: #6c757d;
+	--accent: #0d6efd;
+	--glass: rgba(255,255,255,0.6);
+}
+
+[data-theme="dark"]{
+	--bg: #071126;
+	--card: #0b1724;
+	--text: #e6f0fb;
+	--muted: #9fb0c9;
+	--accent: #6ab0ff;
+	--glass: rgba(10,15,22,0.5);
+}
+
+body{ font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); color:var(--text); }
+.navbar, .card{ background:var(--card) !important; }
 .card-title{ font-weight:600; }
-.table thead th{ background:#f8f9fa; }
-.footer{ padding:24px 0; color:#6c757d; }
+.table thead th{ background:transparent; color:var(--muted); }
+.btn-primary{ background-color:var(--accent); border-color:var(--accent); }
+.btn-outline-secondary{ color:var(--text); border-color:rgba(0,0,0,0.08); }
+.accent-preview{ box-shadow: 0 0 0 2px rgba(0,0,0,0.04) inset; }
+.shadow-sm{ box-shadow: 0 4px 12px rgba(2,6,23,0.06) !important; }
+.lead{ font-size:1.25rem; }
+.form-label{ font-weight:600; color:var(--muted); }
+.container h1{ letter-spacing:0.2px; }
+
 @media (max-width:768px){ .logo{ width:44px; height:44px; } }
+
+/* Chart canvas responsive tweaks */
+canvas{ max-height:320px; }
