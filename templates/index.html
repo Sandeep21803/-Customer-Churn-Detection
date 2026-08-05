@@ -5,79 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Customer Churn - Demo UI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      .small-input { max-width: 140px; }
+      .tab-pane { padding-top: 1rem; }
+    </style>
   </head>
   <body class="bg-light">
     <div class="container py-4">
-      <h1 class="mb-3">Customer Churn Demo (Flask)</h1>
+      <h1 class="mb-3">Customer Churn Demo</h1>
 
-      <div class="row">
-        <div class="col-md-6">
-          <h5>Model metrics</h5>
-          <ul>
-            <li>Accuracy: {{ metrics['accuracy'] }}</li>
-            <li>Recall: {{ metrics['recall'] }}</li>
-            <li>F1: {{ metrics['f1'] }}</li>
-            <li>ROC AUC: {{ metrics['roc_auc'] }}</li>
-          </ul>
-          <h5>Sample data</h5>
-          <div>{{ sample_table | safe }}</div>
+      <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">Overview</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="predict-tab" data-bs-toggle="tab" data-bs-target="#predict" type="button" role="tab">Predict</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab">Batch</button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane active" id="overview" role="tabpanel">
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <h5>Model metrics</h5>
+              <ul>
+                <li><strong>Accuracy:</strong> {{ metrics['accuracy'] }}</li>
+                <li><strong>Recall:</strong> {{ metrics['recall'] }}</li>
+                <li><strong>F1:</strong> {{ metrics['f1'] }}</li>
+                <li><strong>ROC AUC:</strong> {{ metrics['roc_auc'] }}</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h5>Sample data</h5>
+              <div>{{ sample_table | safe }}</div>
+            </div>
+          </div>
         </div>
 
-        <div class="col-md-6">
-          <h5>Make a single prediction</h5>
-          <form method="post" action="/predict">
-            <div class="mb-2">
-              <label class="form-label">Credit Score</label>
-              <input class="form-control" name="CreditScore" value="650">
+        <div class="tab-pane" id="predict" role="tabpanel">
+          <div class="row mt-3">
+            <div class="col-md-8">
+              <form method="post" action="/predict" id="predictForm">
+                <div class="row g-2">
+                  <div class="col-6 col-md-4">
+                    <label class="form-label">Credit Score</label>
+                    <input class="form-control" name="CreditScore" type="number" min="300" max="850" value="650">
+                  </div>
+                  <div class="col-6 col-md-4">
+                    <label class="form-label">Geography</label>
+                    <select class="form-select" name="Geography">
+                      <option>France</option>
+                      <option>Spain</option>
+                      <option>Germany</option>
+                    </select>
+                  </div>
+                  <div class="col-6 col-md-4">
+                    <label class="form-label">Gender</label>
+                    <select class="form-select" name="Gender">
+                      <option>Male</option>
+                      <option>Female</option>
+                    </select>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Age</label>
+                    <input class="form-control" name="Age" type="number" min="18" max="100" value="40">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Tenure</label>
+                    <input class="form-control" name="Tenure" type="number" min="0" max="10" value="3">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label"># Products</label>
+                    <input class="form-control" name="NumOfProducts" type="number" min="1" max="4" value="1">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Has Credit Card</label>
+                    <select class="form-select" name="HasCrCard">
+                      <option value="1">Yes</option>
+                      <option value="0">No</option>
+                    </select>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Is Active Member</label>
+                    <select class="form-select" name="IsActiveMember">
+                      <option value="1">Yes</option>
+                      <option value="0">No</option>
+                    </select>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Balance</label>
+                    <input class="form-control" name="Balance" type="number" step="0.01" value="0.00">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Estimated Salary</label>
+                    <input class="form-control" name="EstimatedSalary" type="number" step="1" value="50000">
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <button class="btn btn-primary" type="submit">Predict</button>
+                </div>
+              </form>
             </div>
-            <div class="mb-2">
-              <label class="form-label">Geography</label>
-              <select class="form-select" name="Geography">
-                <option>France</option>
-                <option>Spain</option>
-                <option>Germany</option>
-              </select>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Gender</label>
-              <select class="form-select" name="Gender">
-                <option>Male</option>
-                <option>Female</option>
-              </select>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Age</label>
-              <input class="form-control" name="Age" value="40">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Tenure</label>
-              <input class="form-control" name="Tenure" value="3">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Balance</label>
-              <input class="form-control" name="Balance" value="0.0">
-            </div>
-            <div class="mb-2">
-              <label class="form-label"># Products</label>
-              <input class="form-control" name="NumOfProducts" value="1">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Has Credit Card (0/1)</label>
-              <input class="form-control" name="HasCrCard" value="1">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Is Active Member (0/1)</label>
-              <input class="form-control" name="IsActiveMember" value="1">
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Estimated Salary</label>
-              <input class="form-control" name="EstimatedSalary" value="50000">
-            </div>
+          </div>
+        </div>
 
-            <button class="btn btn-primary mt-2" type="submit">Predict</button>
-          </form>
+        <div class="tab-pane" id="batch" role="tabpanel">
+          <div class="row mt-3">
+            <div class="col-md-8">
+              <form method="post" action="/predict_batch" enctype="multipart/form-data">
+                <div class="mb-2">
+                  <label class="form-label">Upload CSV (columns: CreditScore,Geography,Gender,Age,Tenure,Balance,NumOfProducts,HasCrCard,IsActiveMember,EstimatedSalary)</label>
+                  <input class="form-control" name="file" type="file" accept=".csv">
+                </div>
+                <button class="btn btn-secondary" type="submit">Run Batch Predictions & Download</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import pandas as pd
 import numpy as np
+import os
+import pickle
 
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
@@ -13,9 +15,17 @@ import warnings
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
-def load_and_train():
+def load_and_train(persist_path='model.pkl'):
+    # Load persisted context if available
+    if os.path.exists(persist_path):
+        with open(persist_path, 'rb') as f:
+            context = pickle.load(f)
+        return context
+
     df = pd.read_csv('Churn_Modelling.csv')
 
     # Feature engineering (same as notebook)
@@ -79,6 +89,11 @@ def load_and_train():
         'full_df': df,
         'model': model,
     }
+
+    # Persist context for faster subsequent startups
+    with open(persist_path, 'wb') as f:
+        pickle.dump(context, f)
+
     return context
 
 
@@ -153,7 +168,62 @@ def predict():
     except Exception:
         prob = None
 
-    return render_template('result.html', prediction=int(pred), probability=prob)
+    # Compute local feature importances (if available)
+    importances = None
+    try:
+        base_model = None
+        # if pipeline, find last estimator with feature_importances_
+        if hasattr(model, 'named_steps'):
+            # get last step
+            last = list(model.named_steps.items())[-1][1]
+            base_model = last
+        else:
+            base_model = model
+
+        if hasattr(base_model, 'feature_importances_'):
+            fi = base_model.feature_importances_
+            features = ctx['features_columns']
+            imp_df = pd.DataFrame({'feature': features, 'importance': fi})
+            imp_df = imp_df.sort_values('importance', ascending=False).head(10)
+            importances = imp_df.to_dict(orient='records')
+    except Exception:
+        importances = None
+
+    return render_template('result.html', prediction=int(pred), probability=prob, importances=importances)
+
+
+@app.route('/predict_batch', methods=['POST'])
+def predict_batch():
+    file = request.files.get('file')
+    if not file:
+        return 'No file uploaded', 400
+
+    path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    file.save(path)
+
+    df_in = pd.read_csv(path)
+    # Expect same input columns as used in form; try to map
+    required = ['CreditScore','Geography','Gender','Age','Tenure','Balance','NumOfProducts','HasCrCard','IsActiveMember','EstimatedSalary']
+    missing = [c for c in required if c not in df_in.columns]
+    if missing:
+        return f'Missing columns in upload: {missing}', 400
+
+    rows = []
+    for _, r in df_in.iterrows():
+        form = r.to_dict()
+        row = preprocess_input(form, ctx)
+        pred = ctx['model'].predict(row)[0]
+        try:
+            prob = ctx['model'].predict_proba(row)[0][1]
+        except Exception:
+            prob = None
+        rows.append({'prediction': int(pred), 'probability': float(prob) if prob is not None else None})
+
+    out = pd.concat([df_in.reset_index(drop=True), pd.DataFrame(rows)], axis=1)
+    out_path = path.replace('.csv', '_predictions.csv')
+    out.to_csv(out_path, index=False)
+
+    return send_file(out_path, as_attachment=True)
 
 
 if __name__ == '__main__':
