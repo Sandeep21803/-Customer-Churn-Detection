@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 from flask import Response
 import pandas as pd
 import numpy as np
@@ -303,19 +303,25 @@ def plot_roc():
         fpr, tpr, _ = roc_curve(y_test, y_score)
         roc_auc = auc(fpr, tpr)
 
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(fpr, tpr, color='tab:blue', lw=2, label=f'ROC (AUC = {roc_auc:.3f})')
-        ax.plot([0, 1], [0, 1], color='gray', lw=1, linestyle='--')
+        # Improved plotting aesthetics for clarity
+        import seaborn as sns
+        sns.set_style('whitegrid')
+        plt.rcParams.update({'font.size': 10})
+        fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
+        ax.plot(fpr, tpr, color='#0d6efd', lw=3, label=f'ROC (AUC = {roc_auc:.3f})')
+        ax.plot([0, 1], [0, 1], color='#adb5bd', lw=1, linestyle='--')
         ax.set_xlim([0.0, 1.0])
         ax.set_ylim([0.0, 1.05])
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.legend(loc='lower right')
+        ax.set_xlabel('False Positive Rate', fontsize=11)
+        ax.set_ylabel('True Positive Rate', fontsize=11)
+        ax.tick_params(axis='both', which='major', labelsize=10)
+        ax.legend(loc='lower right', fontsize=10)
+        ax.grid(alpha=0.3)
         fig.tight_layout()
 
         from io import BytesIO
         buf = BytesIO()
-        fig.savefig(buf, format='png', dpi=100)
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', transparent=True)
         plt.close(fig)
         buf.seek(0)
         return Response(buf.getvalue(), mimetype='image/png')
@@ -336,20 +342,65 @@ def plot_dist():
         import matplotlib.pyplot as plt
         import seaborn as sns
 
-        fig, ax = plt.subplots(figsize=(6, 4))
-        sns.countplot(x='Exited', data=full_df, palette='pastel', ax=ax)
-        ax.set_xlabel('Exited (1 = churn)')
-        ax.set_ylabel('Count')
+        sns.set_style('whitegrid')
+        plt.rcParams.update({'font.size': 10})
+        fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
+        colors = ['#0d6efd', '#ff6b6b']
+        sns.countplot(x='Exited', data=full_df, palette=colors, ax=ax)
+        ax.set_xlabel('Exited (1 = churn)', fontsize=11)
+        ax.set_ylabel('Count', fontsize=11)
+        ax.set_xticklabels(['No', 'Yes'])
+        for p in ax.patches:
+            height = p.get_height()
+            ax.annotate(f'{int(height):,}', (p.get_x()+p.get_width()/2., height), ha='center', va='bottom', fontsize=9)
+        ax.grid(alpha=0.25)
         fig.tight_layout()
 
         from io import BytesIO
         buf = BytesIO()
-        fig.savefig(buf, format='png', dpi=100)
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', transparent=True)
         plt.close(fig)
         buf.seek(0)
         return Response(buf.getvalue(), mimetype='image/png')
     except Exception as e:
         return f'Error generating distribution plot: {e}', 500
+
+
+# New JSON endpoints for client-side Chart.js rendering
+@app.route('/api/roc')
+def api_roc():
+    X_test = ctx.get('X_test')
+    y_test = ctx.get('y_test')
+    model = ctx.get('model')
+    if X_test is None or y_test is None:
+        return jsonify({'error': 'no_test_data'}), 404
+    try:
+        try:
+            y_score = model.predict_proba(X_test)[:, 1]
+        except Exception:
+            y_score = model.decision_function(X_test) if hasattr(model, 'decision_function') else None
+        if y_score is None:
+            return jsonify({'error': 'no_scores'}), 400
+        from sklearn.metrics import roc_curve, auc
+        fpr, tpr, _ = roc_curve(y_test, y_score)
+        roc_auc = auc(fpr, tpr)
+        return jsonify({'fpr': fpr.tolist(), 'tpr': tpr.tolist(), 'auc': float(roc_auc)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dist')
+def api_dist():
+    full_df = ctx.get('full_df')
+    if full_df is None:
+        return jsonify({'error': 'no_data'}), 404
+    try:
+        counts = full_df['Exited'].value_counts().sort_index().to_dict()
+        # ensure keys '0' and '1' exist
+        counts = {str(k): int(v) for k, v in counts.items()}
+        return jsonify(counts)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

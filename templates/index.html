@@ -89,11 +89,11 @@
             <div class="col-lg-6">
               <h5>Visuals</h5>
               <div class="d-flex gap-3 align-items-start mt-2">
-                <div>
-                  <img src="/plots/roc.png" alt="ROC" style="max-width:280px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06)">
+                <div style="flex:1; max-width:360px;">
+                  <canvas id="rocChart" class="chart-img"></canvas>
                 </div>
-                <div>
-                  <img src="/plots/dist.png" alt="Distribution" style="max-width:280px; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06)">
+                <div style="flex:1; max-width:360px;">
+                  <canvas id="distChart" class="chart-img"></canvas>
                 </div>
               </div>
             </div>
@@ -201,6 +201,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
       // cookie banner
       const cb = document.getElementById('cookieBanner');
@@ -212,6 +213,51 @@
       const savedAccent = localStorage.getItem('churn_accent') || '#0d6efd';
       document.documentElement.setAttribute('data-theme', savedTheme);
       document.documentElement.style.setProperty('--accent', savedAccent);
+
+      // Fetch data and render client-side charts with Chart.js
+      async function renderCharts(){
+        // ROC
+        try{
+          const r = await fetch('/api/roc');
+          const json = await r.json();
+          if(!json.error){
+            const ctx = document.getElementById('rocChart').getContext('2d');
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: json.fpr,
+                datasets: [{
+                  label: `ROC (AUC=${json.auc.toFixed(3)})`,
+                  data: json.tpr,
+                  borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d6efd',
+                  backgroundColor: 'rgba(13,110,253,0.08)',
+                  fill: true,
+                  tension: 0.2,
+                  pointRadius: 0
+                }]
+              },
+              options: { responsive:true, scales:{ x:{ title:{display:true, text:'False Positive Rate'} }, y:{ title:{display:true, text:'True Positive Rate'}, min:0, max:1 } } }
+            });
+          }
+        }catch(e){ console.warn('ROC chart failed', e) }
+
+        // Distribution
+        try{
+          const r2 = await fetch('/api/dist');
+          const j2 = await r2.json();
+          if(!j2.error){
+            const labels = Object.keys(j2).map(k=>k==='0'? 'No':'Yes');
+            const values = Object.values(j2);
+            const ctx2 = document.getElementById('distChart').getContext('2d');
+            new Chart(ctx2, {
+              type: 'bar',
+              data: { labels: labels, datasets:[{ label:'Count', data: values, backgroundColor:[getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d6efd', '#ff6b6b'] }] },
+              options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+            });
+          }
+        }catch(e){ console.warn('Dist chart failed', e) }
+      }
+      renderCharts();
     </script>
   </body>
 </html>
